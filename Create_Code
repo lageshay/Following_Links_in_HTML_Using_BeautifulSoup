@@ -1,0 +1,64 @@
+#Import urllib
+import urllib.request, urllib.parse, urllib.error
+#Import BeautifulSoup (BeautifulSoup is saved to the bs4 folder)
+from bs4 import BeautifulSoup
+#Import ssl for certificate errors coding below
+import ssl
+
+#Ignore SSL certificate errors
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+
+#Prompt User for url
+url = input('Enter - ')
+#If the user does not add a url (<1 character in length) use file below
+if len(url) < 1 : url = 'http://py4e-data.dr-chuck.net/known_by_Ritchie.html'
+#Open and read the data
+html = urllib.request.urlopen(url, context=ctx).read()
+#Run the html through BeautifulSoup to give a clean object
+soup = BeautifulSoup(html, 'html.parser')
+
+# Retrieve all the anchor tags (links) and add to a list
+links = list()
+tags = soup('a')
+for tag in tags:
+    links.append(tag.get('href', None))
+
+export_links = list()
+#Prompt User for input for the position number on the list and 
+#the count (the number of times they want to repeat this process)
+position = int(input('Enter position: '))
+count = int(input('Enter count: '))
+#Loop until count reaches 0
+while int(count) > 0:
+    print(links[int(position)-1])
+    #Decrease the count by one (to eventually get to zero)
+    count = count – 1
+    #Add the link in the correct position to the export_links list
+    #Use position – 1 to account for the first number in python code being 0
+    export_links.append(links[int(position)-1])
+    #Set the url to be the newest identified link
+    #Use position – 1 to account for the first number in python code being 0
+    url = links[int(position)-1]
+    #Repeat the process of opening the new link, reading the data, 
+    #retrieving all the anchor tags (links), adding them to a list
+    #and running it through the loop
+    html = urllib.request.urlopen(url, context=ctx).read()
+    soup = BeautifulSoup(html, 'html.parser')
+    links = list()
+    tags = soup('a')
+    for tag in tags:
+        links.append(tag.get('href', None))
+
+#Set ‘last_name’ to the last item (link) in the list
+last_name = str(export_links[-1:])
+
+#Find the name parameters in the last link by first finding ‘by_’ before the 
+#name and ‘.html’ after it
+find_name = last_name.find('by_')
+find_end = last_name.find('.html')
+#Find the name using these above parameters
+name = last_name[find_name+3:find_end]
+#Print the answer: the final name
+print("The answer to the assignment for this execution is", name)
